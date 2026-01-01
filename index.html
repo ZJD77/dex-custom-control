@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Control Robot JD</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: white;
+    }
+    button {
+      font-size: 20px;
+      margin: 10px;
+      padding: 15px 25px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🤖 Control Robot JD</h1>
+
+  <button onclick="connect()">🔗 Conectar</button><br>
+
+  <button onclick="send('F')">⬆️ Avanzar</button>
+  <button onclick="send('B')">⬇️ Retroceder</button><br>
+
+  <button onclick="send('H')">😄 Feliz</button>
+  <button onclick="send('T')">😢 Triste</button><br>
+
+  <button onclick="send('S')">🦘 Saltar</button>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+let device;
+let characteristic;
+
+async function connect() {
+  try {
+    device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
+    });
+
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(
+      '0000ffe0-0000-1000-8000-00805f9b34fb'
+    );
+
+    characteristic = await service.getCharacteristic(
+      '0000ffe1-0000-1000-8000-00805f9b34fb'
+    );
+
+    alert("✅ Conectado al robot");
+  } catch (e) {
+    alert("❌ Error al conectar");
+    console.error(e);
+  }
+}
+
+function send(letter) {
+  if (!characteristic) {
+    alert("⚠️ No conectado");
+    return;
+  }
+
+  const data = new TextEncoder().encode(letter);
+  characteristic.writeValue(data);
+}
+
